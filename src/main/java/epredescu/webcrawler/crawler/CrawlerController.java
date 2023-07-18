@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,17 +45,26 @@ public class CrawlerController {
 
         List<Domain> domainList = domainRepository.findAllByVisitedFalse().stream().limit(3L)
                 .collect(Collectors.toList());
-        Map<String, List<WebsiteData>> websiteDataMap = domainList.stream()
-                .map(domain -> {
-                    try {
-                        controller.addSeed("http://" + domain.getUrl());
-                    } catch (Exception e) {
-                        controller.addSeed("https://" + domain.getUrl());
-                    }
-                    WebsiteData websiteData = new WebsiteData();
-                    websiteData.setMainDomain(domain.getUrl());
-                    return websiteData;
-                }).collect(Collectors.groupingBy(WebsiteData::getDomain));
+
+        ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = domainList.stream()
+                .collect(Collectors.toConcurrentMap(
+                        Domain::getUrl,
+                        domain -> {
+                            try {
+                                controller.addSeed("http://" + domain.getUrl());
+                            } catch (Exception e) {
+                                controller.addSeed("https://" + domain.getUrl());
+                            }
+                            CopyOnWriteArrayList<WebsiteData> websiteDataList = new CopyOnWriteArrayList<>();
+                            websiteDataList.add(new WebsiteData(domain.getUrl()));
+                            return websiteDataList;
+                        },
+                        (list1, list2) -> {
+                            list1.addAll(list2);
+                            return list1;
+                        },
+                        ConcurrentHashMap::new
+                ));
 
         CrawlerFactory factory = new CrawlerFactory(websiteDataMap);
         controller.startNonBlocking(factory, 7);

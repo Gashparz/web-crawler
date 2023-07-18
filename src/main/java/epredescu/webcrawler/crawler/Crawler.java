@@ -1,6 +1,5 @@
 package epredescu.webcrawler.crawler;
 
-import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -14,24 +13,25 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Crawler extends WebCrawler {
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
-    public Map<String, List<WebsiteData>> websiteData;
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData;
 
     private int counter = 9;
     private static final Pattern FILTERS = Pattern
             .compile(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
-                    "|rm|smil|wmv|swf|wma|zip|rar|gz|php))$");
+                    "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
     private static final Pattern phoneRegex = Pattern
             .compile("(\\+\\d{1,2}\\s?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}");
 
-    public Crawler(Map<String, List<WebsiteData>> websiteData) {
+    public Crawler(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData) {
         this.websiteData = websiteData;
     }
 
@@ -42,10 +42,11 @@ public class Crawler extends WebCrawler {
 
         if (page.getParseData() instanceof HtmlParseData) {
             String domain = webURL.getDomain();
-            if (Objects.nonNull(websiteData.get(domain))) {
-                WebsiteData newWebsiteData = new WebsiteData();
-                newWebsiteData.setMainDomain(domain);
-                newWebsiteData.setDomain(webURL.getURL());
+            CopyOnWriteArrayList<WebsiteData> websiteDataList = websiteData.get(domain);
+            if (Objects.nonNull(websiteDataList)) {
+                WebsiteData newWebsiteData = new WebsiteData(domain);
+                newWebsiteData.setSubDomaina(webURL.getURL());
+                newWebsiteData.setDomain(domain);
 
                 HtmlParseData parseData = (HtmlParseData) page.getParseData();
                 String html = parseData.getHtml();
@@ -57,10 +58,7 @@ public class Crawler extends WebCrawler {
                         newWebsiteData.getPhoneNumbers().add(matcher.group());
                     }
                 });
-                List<WebsiteData> updatedList = new ArrayList<>(websiteData.get(domain));
-                updatedList.add(newWebsiteData);
-
-                websiteData.put(domain, updatedList);
+                websiteDataList.add(newWebsiteData);
             }
 
         }
@@ -73,7 +71,7 @@ public class Crawler extends WebCrawler {
             return false;
         }
 
-        if (Objects.isNull(websiteData.get(url.getDomain()))) {
+        if (websiteData.get(url.getDomain()) == null) {
             return false;
         }
 
