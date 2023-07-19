@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class Crawler extends WebCrawler {
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData;
@@ -29,18 +30,11 @@ public class Crawler extends WebCrawler {
             .compile(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
                     "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
-    private static final Pattern PHONE_REGEX = Pattern
-            .compile("(\\+\\d{1,2}\\s?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}");
+    private static final Pattern PHONE_REGEX = Pattern.compile(CrawlerUtils.PHONE_REGEX);
 
-    private static final Pattern FACEBOOK_REGEX = Pattern
-            .compile("/(?:https?:\\/\\/)?(?:www\\.)?(mbasic.facebook|m\\.facebook|facebook|fb)\\.(com|me)\\/(?:(?:\\w\\.)*#!\\/)?(?:pages\\/)?(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)/ig");
+    private static final Pattern SOCIAL_MEDIA_REGEX = Pattern.compile(CrawlerUtils.SOCIAL_REGEX);
 
-//    private static final Pattern INSTAGRAM_REGEX = Pattern
-//            .compile("(?:https?:)?\\/\\/(?:www\\.)?(?:instagram\\.com|instagr\\.am)\\/(?P<username>[A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\\.(?!\\.))){0,28}(?:[A-Za-z0-9_]))?)")
-
-    private static final Pattern COMBINED_REGEX = Pattern
-            .compile("(?:https?:\\/\\/)?(?:www\\.)?(mbasic.facebook|m\\.facebook|facebook|fb)\\.(com|me)\\/(?:(?:\\w\\.)*#!\\/)?(?:pages\\/)?(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)|((\\+\\d{1,2}\\s?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4})");
-
+    private static final Pattern COMBINED_REGEX = Pattern.compile(CrawlerUtils.COMBINED_REGEX);
     public Crawler(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData,
                    ConcurrentHashMap<String, AtomicInteger> processedPagesCounter,
                    int maxProcessedPagesCount) {
@@ -75,7 +69,7 @@ public class Crawler extends WebCrawler {
                         newWebsiteData.getPhoneNumbers().add(phoneMatcher.group());
                     }
 
-                    Matcher socialMediaMatcher = FACEBOOK_REGEX.matcher(element.text());
+                    Matcher socialMediaMatcher = SOCIAL_MEDIA_REGEX.matcher(element.text());
                     if (socialMediaMatcher.find()) {
                         this.foundSocialMedia = true;
                         newWebsiteData.getPhoneNumbers().add(socialMediaMatcher.group());
