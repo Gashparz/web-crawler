@@ -9,14 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +42,7 @@ public class CrawlerController {
         List<Domain> domainList = domainRepository.findAllByVisitedFalse().stream().limit(3L)
                 .collect(Collectors.toList());
 
+        ConcurrentHashMap<String, AtomicInteger> processedPagesCounter = new ConcurrentHashMap<>();
         ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = domainList.stream()
                 .collect(Collectors.toConcurrentMap(
                         Domain::getUrl,
@@ -57,6 +54,8 @@ public class CrawlerController {
                             }
                             CopyOnWriteArrayList<WebsiteData> websiteDataList = new CopyOnWriteArrayList<>();
                             websiteDataList.add(new WebsiteData(domain.getUrl()));
+
+                            processedPagesCounter.put(domain.getUrl(), new AtomicInteger(1));
                             return websiteDataList;
                         },
                         (list1, list2) -> {
@@ -66,7 +65,7 @@ public class CrawlerController {
                         ConcurrentHashMap::new
                 ));
 
-        CrawlerFactory factory = new CrawlerFactory(websiteDataMap);
+        CrawlerFactory factory = new CrawlerFactory(websiteDataMap, processedPagesCounter, 10);
         controller.startNonBlocking(factory, 7);
         controller.waitUntilFinish();
 

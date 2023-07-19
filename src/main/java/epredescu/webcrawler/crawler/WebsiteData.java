@@ -10,9 +10,9 @@ import java.util.List;
 @Setter
 public class WebsiteData {
     private String domain;
-    private String subDomaina;
+    private String subDomains;
     private List<String> phoneNumbers = new ArrayList<>();
-    private List<String> socialMediaLinks;
+    private List<String> socialMediaLinks = new ArrayList<>();
     private String location;
 
     public WebsiteData(String domain) {

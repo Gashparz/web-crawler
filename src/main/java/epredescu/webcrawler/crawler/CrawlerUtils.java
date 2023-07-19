@@ -25,7 +25,6 @@ public class CrawlerUtils {
                 Domain domain = new Domain();
                 domain.setUrl(sc.next());
                 urls.add(domain);
-//
             }
             sc.close();
         } catch (FileNotFoundException e) {
