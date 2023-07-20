@@ -9,11 +9,6 @@ import java.util.Scanner;
 
 @Service
 public class CrawlerUtils {
-    private final DomainRepository domainRepository;
-
-    public CrawlerUtils(DomainRepository domainRepository) {
-        this.domainRepository = domainRepository;
-    }
     public static final String PHONE_REGEX = "(\\+\\d{1,2}\\s?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}";
     public static final String INSTAGRAM_REGEX = "((?:https?:\\/\\/)?(?:www\\.)?(instagram|instagr))\\.(com|am)\\/(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)";
     public static final String FACEBOOK_REGEX = "(?:https?:\\/\\/)?(?:www\\.)?(mbasic.facebook|m\\.facebook|facebook|fb)\\.(com|me)\\/(?:(?:\\w\\.)*#!\\/)?(?:pages\\/)?(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)";
@@ -22,6 +17,12 @@ public class CrawlerUtils {
     public static final String SOCIAL_REGEX = String.format("%s|%s|%s|%s", FACEBOOK_REGEX, INSTAGRAM_REGEX, TWITTER_REGEX, LINKEDIN_REGEX);
     public static final String COMBINED_REGEX = String.format("%s|%s", PHONE_REGEX, SOCIAL_REGEX);
 
+
+    private final DomainRepository domainRepository;
+
+    public CrawlerUtils(DomainRepository domainRepository) {
+        this.domainRepository = domainRepository;
+    }
 
     public List<Domain> readUrlCsv() {
         List<Domain> urls = new ArrayList<>();

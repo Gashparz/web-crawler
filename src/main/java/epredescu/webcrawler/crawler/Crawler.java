@@ -24,8 +24,6 @@ public class Crawler extends WebCrawler {
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData;
     private final ConcurrentHashMap<String, AtomicInteger> processedPagesCounter;
     private final int maxProcessedPagesCount;
-    private boolean foundPhoneNumber = false;
-    private boolean foundSocialMedia = false;
     private static final Pattern FILTERS = Pattern
             .compile(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
                     "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
@@ -35,6 +33,7 @@ public class Crawler extends WebCrawler {
     private static final Pattern SOCIAL_MEDIA_REGEX = Pattern.compile(CrawlerUtils.SOCIAL_REGEX);
 
     private static final Pattern COMBINED_REGEX = Pattern.compile(CrawlerUtils.COMBINED_REGEX);
+
     public Crawler(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData,
                    ConcurrentHashMap<String, AtomicInteger> processedPagesCounter,
                    int maxProcessedPagesCount) {
@@ -47,36 +46,37 @@ public class Crawler extends WebCrawler {
     @Override
     public void visit(Page page) {
         WebURL webURL = page.getWebURL();
-        logger.info("Visited: {}", webURL.getURL());
 
         if (page.getParseData() instanceof HtmlParseData) {
             String domain = webURL.getDomain();
-            processedPagesCounter.get(domain).incrementAndGet();
-            CopyOnWriteArrayList<WebsiteData> websiteDataList = websiteData.get(domain);
-            if (Objects.nonNull(websiteDataList)) {
-                WebsiteData newWebsiteData = new WebsiteData(domain);
-                newWebsiteData.setSubDomains(webURL.getURL());
-                newWebsiteData.setDomain(domain);
+            AtomicInteger counter = processedPagesCounter.get(domain);
+            int currentCount = counter.incrementAndGet();
+            if (currentCount <= maxProcessedPagesCount) {
+                logger.info("Visited: {}, {}", webURL.getURL(), currentCount);
+                CopyOnWriteArrayList<WebsiteData> websiteDataList = websiteData.get(domain);
+                if (Objects.nonNull(websiteDataList)) {
+                    WebsiteData newWebsiteData = new WebsiteData(domain);
+                    newWebsiteData.setSubDomains(webURL.getURL());
+                    newWebsiteData.setDomain(domain);
 
-                HtmlParseData parseData = (HtmlParseData) page.getParseData();
-                String html = parseData.getHtml();
-                Document doc = Jsoup.parseBodyFragment(html);
-                Elements phoneNumberElements = doc.getElementsMatchingOwnText(COMBINED_REGEX);
-                phoneNumberElements.forEach(element -> {
-                    Matcher phoneMatcher = PHONE_REGEX.matcher(element.text());
-                    if (phoneMatcher.find()) {
-                        this.foundPhoneNumber = true;
-                        newWebsiteData.getPhoneNumbers().add(phoneMatcher.group());
-                    }
+                    HtmlParseData parseData = (HtmlParseData) page.getParseData();
+                    String html = parseData.getHtml();
+                    Document doc = Jsoup.parseBodyFragment(html);
+                    Elements phoneNumberElements = doc.getElementsMatchingOwnText(COMBINED_REGEX);
+                    phoneNumberElements.forEach(element -> {
+                        Matcher phoneMatcher = PHONE_REGEX.matcher(element.text());
+                        if (phoneMatcher.find()) {
+                            newWebsiteData.getPhoneNumbers().add(phoneMatcher.group());
+                        }
 
-                    Matcher socialMediaMatcher = SOCIAL_MEDIA_REGEX.matcher(element.text());
-                    if (socialMediaMatcher.find()) {
-                        this.foundSocialMedia = true;
-                        newWebsiteData.getPhoneNumbers().add(socialMediaMatcher.group());
-                    }
-                });
+                        Matcher socialMediaMatcher = SOCIAL_MEDIA_REGEX.matcher(element.text());
+                        if (socialMediaMatcher.find()) {
+                            newWebsiteData.getPhoneNumbers().add(socialMediaMatcher.group());
+                        }
+                    });
 
-                websiteDataList.add(newWebsiteData);
+                    websiteDataList.add(newWebsiteData);
+                }
             }
         }
     }
@@ -95,11 +95,8 @@ public class Crawler extends WebCrawler {
         }
 
         AtomicInteger counter = processedPagesCounter.get(domain);
-//        if (!foundPhoneNumber && (counter.incrementAndGet() > maxProcessedPagesCount + 10)) {
-//                return false;
-//        }
-
-        if (counter.get() > maxProcessedPagesCount) {
+        int currentCount = counter.get();
+        if (currentCount >= maxProcessedPagesCount) {
             return false;
         }
 

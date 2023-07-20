@@ -39,8 +39,7 @@ public class CrawlerController {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        List<Domain> domainList = domainRepository.findAllByVisitedFalse().stream().limit(3L)
-                .collect(Collectors.toList());
+        List<Domain> domainList = domainRepository.findAllByVisitedFalse();
 
         ConcurrentHashMap<String, AtomicInteger> processedPagesCounter = new ConcurrentHashMap<>();
         ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = domainList.stream()
