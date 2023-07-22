@@ -5,8 +5,10 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import epredescu.webcrawler.elasticsearch.DomainDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,11 +20,14 @@ import java.util.stream.Collectors;
 @Service
 public class CrawlerController {
     private final DomainRepository domainRepository;
+    private final ElasticsearchOperations esOperations;
 
     private static final Logger logger = LoggerFactory.getLogger(CrawlerController.class);
 
-    public CrawlerController(DomainRepository domainRepository) {
+    public CrawlerController(DomainRepository domainRepository,
+                             ElasticsearchOperations esOperations) {
         this.domainRepository = domainRepository;
+        this.esOperations = esOperations;
     }
 
     public void run() throws Exception {
@@ -39,7 +44,7 @@ public class CrawlerController {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        List<Domain> domainList = domainRepository.findAllByVisitedFalse();
+        List<Domain> domainList = domainRepository.findAllByVisitedFalse().stream().limit(5).collect(Collectors.toList());
 
         ConcurrentHashMap<String, AtomicInteger> processedPagesCounter = new ConcurrentHashMap<>();
         ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = domainList.stream()
@@ -69,5 +74,20 @@ public class CrawlerController {
         controller.waitUntilFinish();
 
         logger.info("Done");
+
+        List<DomainDocument> domainDocuments = websiteDataMap.entrySet().stream()
+                .map(entrySet -> {
+                    DomainDocument newDoc = new DomainDocument();
+                    newDoc.domain = entrySet.getKey();
+                    entrySet.getValue().forEach(value -> {
+                        newDoc.phoneNumbers.addAll(value.getPhoneNumbers());
+                        newDoc.socialMedia.addAll(value.getSocialMediaLinks());
+                    });
+                    return newDoc;
+                }).collect(Collectors.toList());
+
+        esOperations.save(domainDocuments);
+
+        logger.info("Done es");
     }
 }

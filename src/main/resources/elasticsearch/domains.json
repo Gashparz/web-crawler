@@ -1,0 +1,35 @@
+{
+  "_class": {
+    "type": "keyword",
+    "index": false,
+    "doc_values": false
+  },
+  "id": {
+    "type": "long"
+  },
+  "domain": {
+    "type": "text",
+    "analyzer": "ascii_folding"
+  },
+  "companyCommercialName": {
+    "type": "text",
+    "analyzer": "ascii_folding"
+  },
+  "companyLegalName": {
+    "type": "text",
+    "analyzer": "ascii_folding"
+  },
+  "companyAllAvailableNames": {
+    "type": "text",
+    "analyzer": "ascii_folding"
+  },
+  "riskLevelAssets": {
+    "type": "keyword"
+  },
+  "socialMedia": {
+    "type": "keyword"
+  },
+  "locations": {
+    "type": "text"
+  }
+}

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrawlerFactory implements CrawlController.WebCrawlerFactory<Crawler> {
     ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>>  websiteDataMap;
-    ConcurrentHashMap<String, AtomicInteger> processedPagesCounter; // Counter for processed subdomains
+    ConcurrentHashMap<String, AtomicInteger> processedPagesCounter;
     int maxProcessedPagesCount;
 
     public CrawlerFactory(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap,

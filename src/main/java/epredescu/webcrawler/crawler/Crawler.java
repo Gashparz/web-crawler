@@ -74,7 +74,6 @@ public class Crawler extends WebCrawler {
                             newWebsiteData.getPhoneNumbers().add(socialMediaMatcher.group());
                         }
                     });
-
                     websiteDataList.add(newWebsiteData);
                 }
             }

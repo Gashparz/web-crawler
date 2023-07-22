@@ -6,7 +6,9 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
 import javax.persistence.Id;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Document(indexName = "domains", createIndex = false)
 @Setting(settingPath = "/elasticsearch/settings.json")
@@ -27,11 +29,11 @@ public class DomainDocument {
     @Field(type = FieldType.Text, analyzer = "ascii_folding")
     public String companyAllAvailableNames;
 
-    @Field(type = FieldType.Keyword)
-    public List<String> phoneNumbers;
+    @Field(type = FieldType.Keyword, name = "phoneNumbers")
+    public Set<String> phoneNumbers = new HashSet<>();
 
-    @Field(type = FieldType.Text)
-    public List<String> socialMedia;
+    @Field(type = FieldType.Keyword, name = "socialMedia")
+    public Set<String> socialMedia = new HashSet<>();
 
     @Field(type = FieldType.Text)
     public List<String> locations;
