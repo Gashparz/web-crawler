@@ -5,8 +5,8 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
-import epredescu.webcrawler.elasticsearch.DomainDocument;
-import epredescu.webcrawler.elasticsearch.ESDomainRepository;
+import epredescu.webcrawler.domain.elasticsearch.DomainDocument;
+import epredescu.webcrawler.domain.elasticsearch.ESDomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,12 +77,10 @@ public class CrawlerController {
 
         logger.info("Done");
 
-        //set the domain as id
         List<DomainDocument> domainDocuments = websiteDataMap.entrySet().stream()
                 .map(entrySet -> {
                     DomainDocument newDoc = new DomainDocument();
-                    newDoc.id = UUID.randomUUID().toString();
-                    newDoc.domain = entrySet.getKey();
+                    newDoc.id = entrySet.getKey();
                     entrySet.getValue().forEach(value -> {
                         newDoc.phoneNumbers.addAll(value.getPhoneNumbers());
                         newDoc.socialMedia.addAll(value.getSocialMediaLinks());

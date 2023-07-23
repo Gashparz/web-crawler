@@ -1,24 +1,29 @@
-package epredescu.webcrawler.elasticsearch;
+package epredescu.webcrawler.domain.elasticsearch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 
 @Service
@@ -27,12 +32,29 @@ public class ElasticsearchService {
 
     private final RestHighLevelClient restHighLevelClient;
     private final ElasticsearchRestTemplate esRestTemplate;
+    private final ElasticsearchOperations esOperations;
     private final ObjectMapper objectMapper;
 
-    public ElasticsearchService(RestHighLevelClient restHighLevelClient, ElasticsearchRestTemplate esRestTemplate, ObjectMapper objectMapper) {
+    public ElasticsearchService(RestHighLevelClient restHighLevelClient,
+                                ElasticsearchRestTemplate esRestTemplate,
+                                ElasticsearchOperations esOperations,
+                                ObjectMapper objectMapper) {
         this.restHighLevelClient = restHighLevelClient;
         this.esRestTemplate = esRestTemplate;
+        this.esOperations = esOperations;
         this.objectMapper = objectMapper;
+    }
+
+    public <T> Optional<T> searchSingle(BoolQueryBuilder queryBuilder, Class<T> className) {
+        final NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder().withQuery(queryBuilder);
+
+        final NativeSearchQuery searchQuery = searchQueryBuilder.build();
+
+        SearchHits<T> result = esOperations.search(searchQuery, className);
+
+        SearchHit<T> firstHit = result.stream().findFirst().orElse(null);
+
+        return Optional.ofNullable(firstHit != null ? firstHit.getContent() : null);
     }
 
     public void createIndex() throws Exception {

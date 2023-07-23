@@ -1,4 +1,4 @@
-package epredescu.webcrawler.elasticsearch;
+package epredescu.webcrawler.domain.elasticsearch;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -14,11 +14,8 @@ import java.util.Set;
 @Setting(settingPath = "/elasticsearch/settings.json")
 public class DomainDocument {
     @Id
-    @Field(type = FieldType.Text)
-    public String id;
-
     @Field(type = FieldType.Text, analyzer = "ascii_folding")
-    public String domain;
+    public String id;
 
     @Field(type = FieldType.Text, analyzer = "ascii_folding")
     public String companyCommercialName;

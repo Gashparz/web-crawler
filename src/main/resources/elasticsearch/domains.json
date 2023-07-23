@@ -4,9 +4,6 @@
     "index": false,
     "doc_values": false
   },
-  "id": {
-    "type": "text"
-  },
   "domain": {
     "type": "text",
     "analyzer": "ascii_folding"

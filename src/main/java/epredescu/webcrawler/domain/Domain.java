@@ -1,4 +1,4 @@
-package epredescu.webcrawler.crawler;
+package epredescu.webcrawler.domain;
 
 import lombok.Getter;
 import lombok.Setter;
