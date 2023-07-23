@@ -5,7 +5,7 @@
     "doc_values": false
   },
   "id": {
-    "type": "long"
+    "type": "text"
   },
   "domain": {
     "type": "text",

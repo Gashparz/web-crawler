@@ -45,7 +45,7 @@ public class ElasticsearchService {
             }
         }
         catch (IOException ex) {
-            throw new Exception(String.format("Reindex failed with error %s", ex.getMessage()));
+            throw new Exception(String.format("Index creation failed with error %s", ex.getMessage()));
         }
     }
 

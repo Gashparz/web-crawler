@@ -14,8 +14,8 @@ import java.util.Set;
 @Setting(settingPath = "/elasticsearch/settings.json")
 public class DomainDocument {
     @Id
-    @Field(type = FieldType.Long)
-    public Long id;
+    @Field(type = FieldType.Text)
+    public String id;
 
     @Field(type = FieldType.Text, analyzer = "ascii_folding")
     public String domain;

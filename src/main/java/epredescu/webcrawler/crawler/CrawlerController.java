@@ -6,12 +6,18 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import epredescu.webcrawler.elasticsearch.DomainDocument;
+import epredescu.webcrawler.elasticsearch.ESDomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,15 +25,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class CrawlerController {
-    private final DomainRepository domainRepository;
     private final ElasticsearchOperations esOperations;
+    private final ESDomainRepository es;
 
     private static final Logger logger = LoggerFactory.getLogger(CrawlerController.class);
 
-    public CrawlerController(DomainRepository domainRepository,
-                             ElasticsearchOperations esOperations) {
-        this.domainRepository = domainRepository;
+    public CrawlerController(ElasticsearchOperations esOperations, ESDomainRepository es) {
         this.esOperations = esOperations;
+        this.es = es;
     }
 
     public void run() throws Exception {
@@ -44,22 +49,20 @@ public class CrawlerController {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        List<Domain> domainList = domainRepository.findAllByVisitedFalse().stream().limit(5).collect(Collectors.toList());
-
         ConcurrentHashMap<String, AtomicInteger> processedPagesCounter = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = domainList.stream()
+        ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap = readUrlCsv().stream()
                 .collect(Collectors.toConcurrentMap(
-                        Domain::getUrl,
+                        domain -> domain,
                         domain -> {
                             try {
-                                controller.addSeed("http://" + domain.getUrl());
+                                controller.addSeed("http://" + domain);
                             } catch (Exception e) {
-                                controller.addSeed("https://" + domain.getUrl());
+                                controller.addSeed("https://" + domain);
                             }
                             CopyOnWriteArrayList<WebsiteData> websiteDataList = new CopyOnWriteArrayList<>();
-                            websiteDataList.add(new WebsiteData(domain.getUrl()));
+                            websiteDataList.add(new WebsiteData(domain));
 
-                            processedPagesCounter.put(domain.getUrl(), new AtomicInteger(1));
+                            processedPagesCounter.put(domain, new AtomicInteger(1));
                             return websiteDataList;
                         },
                         (list1, list2) -> {
@@ -75,9 +78,11 @@ public class CrawlerController {
 
         logger.info("Done");
 
+        //set the domain as id
         List<DomainDocument> domainDocuments = websiteDataMap.entrySet().stream()
                 .map(entrySet -> {
                     DomainDocument newDoc = new DomainDocument();
+                    newDoc.id = UUID.randomUUID().toString();
                     newDoc.domain = entrySet.getKey();
                     entrySet.getValue().forEach(value -> {
                         newDoc.phoneNumbers.addAll(value.getPhoneNumbers());
@@ -87,7 +92,18 @@ public class CrawlerController {
                 }).collect(Collectors.toList());
 
         esOperations.save(domainDocuments);
+    }
 
-        logger.info("Done es");
+    public List<String> readUrlCsv() {
+        Path csvFilePath = Paths.get("C:\\Users\\Predescu Eduard\\IdeaProjects\\web-crawler\\src\\main\\resources\\sample-websites.csv");
+
+        try {
+            return Files.lines(csvFilePath)
+                    .skip(1)
+                    .limit(5)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read the CSV file.", e);
+        }
     }
 }
