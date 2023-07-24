@@ -6,11 +6,11 @@ import epredescu.webcrawler.domain.elasticsearch.ElasticsearchService;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +27,10 @@ public class DomainService {
         this.esDomainRepository = esDomainRepository;
     }
 
-    public void mergeDataFromCSV() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\Predescu Eduard\\IdeaProjects\\web-crawler\\src\\main\\resources\\sample-websites-company-names.csv"))) {
+    public void mergeDataFromCSV() throws IOException {
+        Resource resource = new ClassPathResource("sample-websites-company-names.csv");
+        InputStream inputStream = resource.getInputStream();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             reader.readLine();
 
             Map<String,DomainDocument> existingDomains = esDomainRepository.findAll()
@@ -37,7 +39,6 @@ public class DomainService {
             List<DomainDocument> updatedDomains = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
-
                 String[] fields = line.split(",");
                 String domain = fields[0].trim();
                 String companyCommercialName = fields[1].trim();
@@ -61,7 +62,7 @@ public class DomainService {
             }
 
             esDomainRepository.saveAll(updatedDomains);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -106,7 +107,9 @@ public class DomainService {
 
         if (domain.startsWith("http://")) {
             domain = domain.substring(7);
-        } else if (domain.startsWith("https://")) {
+        }
+
+        if (domain.startsWith("https://")) {
             domain = domain.substring(8);
         }
 

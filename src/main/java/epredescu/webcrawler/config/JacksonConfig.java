@@ -10,7 +10,6 @@ public class JacksonConfig {
     @Bean
     @Primary
     public ObjectMapper scmsObjectMapper() {
-        com.fasterxml.jackson.databind.ObjectMapper responseMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        return responseMapper;
+        return new ObjectMapper();
     }
 }

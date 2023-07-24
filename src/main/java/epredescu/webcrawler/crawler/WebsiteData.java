@@ -18,6 +18,4 @@ public class WebsiteData {
     public WebsiteData(String domain) {
         this.domain = domain;
     }
-
-    //TODO: EQUALS
 }

@@ -5,6 +5,7 @@ import epredescu.webcrawler.domain.elasticsearch.DomainDocument;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -25,7 +26,7 @@ public class DomainController {
     }
 
     @PatchMapping("/merge-csv")
-    public ResponseEntity<String> mergeCSVData() {
+    public ResponseEntity<String> mergeCSVData() throws IOException {
         domainService.mergeDataFromCSV();
 
         return ResponseEntity.ok("CSV data merged successfully.");

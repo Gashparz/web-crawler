@@ -9,13 +9,19 @@ import epredescu.webcrawler.domain.elasticsearch.DomainDocument;
 import epredescu.webcrawler.domain.elasticsearch.ESDomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -91,16 +97,22 @@ public class CrawlerController {
         esOperations.save(domainDocuments);
     }
 
-    public List<String> readUrlCsv() {
-        Path csvFilePath = Paths.get("C:\\Users\\Predescu Eduard\\IdeaProjects\\web-crawler\\src\\main\\resources\\sample-websites.csv");
+    public List<String> readUrlCsv() throws IOException {
+        Resource resource = new ClassPathResource("sample-websites.csv");
+        InputStream inputStream = resource.getInputStream();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            reader.readLine();
+            List<String> domainUrls = new ArrayList<>();
+            String line;
 
-        try {
-            return Files.lines(csvFilePath)
-                    .skip(1)
-                    .limit(5)
-                    .collect(Collectors.toList());
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split(",");
+                domainUrls.add(fields[0].trim());
+            }
+            return domainUrls;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read the CSV file.", e);
+            logger.error(e.getMessage());
         }
+        throw new RuntimeException("Cannot read csv");
     }
 }

@@ -8,11 +8,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
-@EnableElasticsearchRepositories(basePackages = "epredescu.webcrawler.domain.elasticsearch")
 public class WebCrawlerApplication {
     private static  CrawlerController crawlerController = null;
     private static ElasticsearchService elasticsearchService = null;
@@ -26,8 +24,8 @@ public class WebCrawlerApplication {
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(WebCrawlerApplication.class, args);
-//        elasticsearchService.createIndex();
-//        crawlerController.run();
+        elasticsearchService.createIndex();
+        crawlerController.run();
     }
 
 }

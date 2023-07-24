@@ -1,0 +1,41 @@
+#--- deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-crawler
+  template:
+    metadata:
+      labels:
+        app: web-crawler
+    spec:
+      containers:
+        - name: app
+          image: eduardpredescu/web-crawler:0.0.4
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          env:
+            - name: CLUSTER_NODES
+              value: elasticsearch:9300
+            - name: CLUSTER_HOST
+              value: elasticsearch
+            - name: REST_URI
+              value: elasticsearch:9200
+#--- service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-crawler
+spec:
+  selector:
+    app: web-crawler
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer
