@@ -27,7 +27,7 @@ public class DomainController {
 
     @PatchMapping("/merge-csv")
     public ResponseEntity<String> mergeCSVData() throws IOException {
-        domainService.mergeDataFromCSV();
+        domainService.mergeDataFromCSV(domainService.findAll());
 
         return ResponseEntity.ok("CSV data merged successfully.");
     }

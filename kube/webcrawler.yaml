@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: web-crawler
 spec:
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: web-crawler
@@ -26,6 +26,14 @@ spec:
               value: elasticsearch
             - name: REST_URI
               value: elasticsearch:9200
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              value: "guest"
+            - name: SPRING_RABBITMQ_PASSWORD
+              value: "guest"
 #--- service
 ---
 apiVersion: v1

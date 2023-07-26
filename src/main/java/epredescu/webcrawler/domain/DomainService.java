@@ -27,13 +27,13 @@ public class DomainService {
         this.esDomainRepository = esDomainRepository;
     }
 
-    public void mergeDataFromCSV() throws IOException {
+    public void mergeDataFromCSV(List<DomainDocument> domainDocuments) throws IOException {
         Resource resource = new ClassPathResource("sample-websites-company-names.csv");
         InputStream inputStream = resource.getInputStream();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             reader.readLine();
 
-            Map<String,DomainDocument> existingDomains = esDomainRepository.findAll()
+            Map<String,DomainDocument> existingDomains = domainDocuments
                     .stream()
                     .collect(Collectors.toMap(document -> document.id, domainDocument -> domainDocument));
             List<DomainDocument> updatedDomains = new ArrayList<>();
@@ -52,12 +52,6 @@ public class DomainService {
                     domainDocument.companyLegalName = companyLegalName;
                     domainDocument.companyAllAvailableNames = companyAllAvailableNames;
                     updatedDomains.add(domainDocument);
-                }
-
-                if (domainDocument == null) {
-//                    throw new Exception("There was a problem regarding the merge of data!");
-                    esDomainRepository.saveAll(updatedDomains);
-                    return;
                 }
             }
 

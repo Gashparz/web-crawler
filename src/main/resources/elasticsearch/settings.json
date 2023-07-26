@@ -17,6 +17,19 @@
           "lowercase",
           "asciifolding"
         ]
+      },
+      "phone_tokenizer": {
+        "tokenizer": "standard",
+        "char_filter": [
+          "phone_filter"
+        ]
+      }
+    },
+    "char_filter": {
+      "phone_filter": {
+        "type": "pattern_replace",
+        "pattern": "\\((\\d+)\\)(\\d+)-(\\d+)",
+        "replacement": "$1$2$3"
       }
     }
   }

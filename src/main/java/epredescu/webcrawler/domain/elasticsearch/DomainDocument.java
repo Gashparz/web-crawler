@@ -26,7 +26,7 @@ public class DomainDocument {
     @Field(type = FieldType.Text, analyzer = "ascii_folding")
     public String companyAllAvailableNames;
 
-    @Field(type = FieldType.Keyword, name = "phoneNumbers")
+    @Field(type = FieldType.Keyword, name = "phoneNumbers", analyzer = "phone_tokenizer")
     public Set<String> phoneNumbers = new HashSet<>();
 
     @Field(type = FieldType.Keyword, name = "socialMedia")

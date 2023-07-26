@@ -21,14 +21,14 @@ public class ElasticsearchClientConfig extends AbstractElasticsearchConfiguratio
     @Bean
     public RestHighLevelClient elasticsearchClient() {
         final ClientConfiguration clientConfiguration =
-                ClientConfiguration
-                        .builder()
-                        .connectedTo("localhost:9200")
-                        .build();
-//        ClientConfiguration
+//                ClientConfiguration
 //                        .builder()
 //                        .connectedTo("localhost:9200")
 //                        .build();
+        ClientConfiguration
+                        .builder()
+                        .connectedTo("elasticsearch:9200")
+                        .build();
         try {
             return RestClients.create(clientConfiguration).rest();
 
