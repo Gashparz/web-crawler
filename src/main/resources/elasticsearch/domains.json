@@ -21,7 +21,8 @@
     "analyzer": "ascii_folding"
   },
   "phoneNumbers": {
-    "type": "keyword"
+    "type": "keyword",
+    "analyzer": "phone_tokenizer"
   },
   "socialMedia": {
     "type": "keyword"

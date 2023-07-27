@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,60 +21,59 @@ import java.util.regex.Pattern;
 public class Crawler extends WebCrawler {
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData;
-    private final ConcurrentHashMap<String, AtomicInteger> processedPagesCounter;
-    private final int maxProcessedPagesCount;
-    private static final Pattern FILTERS = Pattern
-            .compile(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
+
+    private static final Pattern FILTERS = Pattern.compile(
+            ".*(\\.(css|bmp|gif|jpe?g|png|tiff?|js|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
                     "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 
     private static final Pattern PHONE_REGEX = Pattern.compile(CrawlerUtils.PHONE_REGEX);
 
     private static final Pattern SOCIAL_MEDIA_REGEX = Pattern.compile(CrawlerUtils.SOCIAL_REGEX);
 
-    private static final Pattern COMBINED_REGEX = Pattern.compile(CrawlerUtils.COMBINED_REGEX);
-
-    public Crawler(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData,
-                   ConcurrentHashMap<String, AtomicInteger> processedPagesCounter,
-                   int maxProcessedPagesCount) {
+    public Crawler(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteData) {
         this.websiteData = websiteData;
-        this.processedPagesCounter = processedPagesCounter;
-        this.maxProcessedPagesCount = maxProcessedPagesCount;
     }
 
-    //TODO: Add check to minimize phone number duplicates
     @Override
     public void visit(Page page) {
         WebURL webURL = page.getWebURL();
-
         if (page.getParseData() instanceof HtmlParseData) {
             String domain = webURL.getDomain();
-            AtomicInteger counter = processedPagesCounter.get(domain);
-            int currentCount = counter.incrementAndGet();
-            if (currentCount <= maxProcessedPagesCount) {
-                logger.info("Visited: {}, {}", webURL.getURL(), currentCount);
-                CopyOnWriteArrayList<WebsiteData> websiteDataList = websiteData.get(domain);
-                if (Objects.nonNull(websiteDataList)) {
-                    WebsiteData newWebsiteData = new WebsiteData(domain);
-                    newWebsiteData.setSubDomains(webURL.getURL());
-                    newWebsiteData.setDomain(domain);
-
-                    HtmlParseData parseData = (HtmlParseData) page.getParseData();
-                    String html = parseData.getHtml();
-                    Document doc = Jsoup.parseBodyFragment(html);
-                    Elements phoneNumberElements = doc.getElementsMatchingOwnText(COMBINED_REGEX);
-                    phoneNumberElements.forEach(element -> {
-                        Matcher phoneMatcher = PHONE_REGEX.matcher(element.text());
-                        if (phoneMatcher.find()) {
-                            newWebsiteData.getPhoneNumbers().add(phoneMatcher.group());
+            logger.info("Visited: {}, {}", webURL.getURL());
+            CopyOnWriteArrayList<WebsiteData> websiteDataList = websiteData.get(domain);
+            if (Objects.nonNull(websiteDataList)) {
+                WebsiteData newWebsiteData = new WebsiteData(domain);
+                newWebsiteData.setSubDomains(webURL.getURL());
+                newWebsiteData.setDomain(domain);
+                HtmlParseData parseData = (HtmlParseData) page.getParseData();
+                String html = parseData.getHtml();
+                Document doc = Jsoup.parseBodyFragment(html);
+                Elements links = doc.select("a[href]");
+                links.forEach(link -> {
+                    String linkHref = link.attr("href");
+                    Matcher socialMediaMatcher = SOCIAL_MEDIA_REGEX.matcher(linkHref);
+                    if (linkHref.contains("www.facebook.com") || linkHref.contains("instagram.com") ||
+                            linkHref.contains("twitter.com") || linkHref.contains("linkedin.com")) {
+                        if (!linkHref.contains("facebook.com/share") || !linkHref.contains("twitter.com/intent/") ||
+                                !linkHref.contains("linkedin.com/share")) {
+                            newWebsiteData.getSocialMediaLinks().add(linkHref);
                         }
-
-                        Matcher socialMediaMatcher = SOCIAL_MEDIA_REGEX.matcher(element.text());
-                        if (socialMediaMatcher.find()) {
-                            newWebsiteData.getPhoneNumbers().add(socialMediaMatcher.group());
+                    } else if (socialMediaMatcher.find()) {
+                        String socialMediaLink = socialMediaMatcher.group();
+                        if (!socialMediaLink.contains("www.instagram.com/p/") ||
+                                socialMediaLink.contains("www.instagram.com/stories/")) {
+                            newWebsiteData.getSocialMediaLinks().add(socialMediaLink);
                         }
-                    });
-                    websiteDataList.add(newWebsiteData);
-                }
+                    }
+                });
+                Elements phoneNumberElements = doc.getElementsMatchingOwnText(PHONE_REGEX);
+                phoneNumberElements.forEach(element -> {
+                    Matcher phoneMatcher = PHONE_REGEX.matcher(element.text());
+                    if (phoneMatcher.find()) {
+                        newWebsiteData.getPhoneNumbers().add(phoneMatcher.group());
+                    }
+                });
+                websiteDataList.add(newWebsiteData);
             }
         }
     }
@@ -90,12 +88,6 @@ public class Crawler extends WebCrawler {
         }
 
         if (websiteData.get(domain) == null) {
-            return false;
-        }
-
-        AtomicInteger counter = processedPagesCounter.get(domain);
-        int currentCount = counter.get();
-        if (currentCount >= maxProcessedPagesCount) {
             return false;
         }
 

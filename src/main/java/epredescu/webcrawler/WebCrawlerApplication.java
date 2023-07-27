@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 public class WebCrawlerApplication {
-    private static  CrawlerController crawlerController = null;
+    private static CrawlerController crawlerController = null;
     private static ElasticsearchService elasticsearchService = null;
     private static final Logger logger =
             LoggerFactory.getLogger(WebCrawlerApplication.class);
@@ -24,8 +24,6 @@ public class WebCrawlerApplication {
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(WebCrawlerApplication.class, args);
-//        crawlerController.consumeDomains();
-        elasticsearchService.createIndex();
         crawlerController.run();
     }
 

@@ -8,19 +8,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrawlerFactory implements CrawlController.WebCrawlerFactory<Crawler> {
     ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>>  websiteDataMap;
-    ConcurrentHashMap<String, AtomicInteger> processedPagesCounter;
-    int maxProcessedPagesCount;
 
-    public CrawlerFactory(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap,
-                          ConcurrentHashMap<String, AtomicInteger> processedPagesCounter,
-                          int maxProcessedPagesCount) {
+    public CrawlerFactory(ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>> websiteDataMap) {
         this.websiteDataMap = websiteDataMap;
-        this.processedPagesCounter = processedPagesCounter;
-        this.maxProcessedPagesCount = maxProcessedPagesCount;
     }
 
     @Override
     public Crawler newInstance() {
-        return new Crawler(this.websiteDataMap, this.processedPagesCounter, this.maxProcessedPagesCount);
+        return new Crawler(this.websiteDataMap);
     }
 }

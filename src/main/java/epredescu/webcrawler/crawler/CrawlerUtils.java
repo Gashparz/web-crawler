@@ -17,25 +17,6 @@ public class CrawlerUtils {
     public static final String FACEBOOK_REGEX = "(?:https?:\\/\\/)?(?:www\\.)?(mbasic.facebook|m\\.facebook|facebook|fb)\\.(com|me)\\/(?:(?:\\w\\.)*#!\\/)?(?:pages\\/)?(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)";
     public static final String TWITTER_REGEX = "((?:https?:\\/\\/)?(?:www\\.)?(twitter))\\.(com)\\/@?\\/*([\\w\\-\\.]*)";
     public static final String LINKEDIN_REGEX = "((?:https?:\\/\\/)?(?:www\\.)?(linkedin))\\.(com)\\/(?:company|in|school\\/)?\\/*([\\w\\-\\.]*)\\/*([\\w\\-\\.]*)";
-    public static final String SOCIAL_REGEX = String.format("%s|%s|%s|%s", FACEBOOK_REGEX, INSTAGRAM_REGEX, TWITTER_REGEX, LINKEDIN_REGEX);
-    public static final String COMBINED_REGEX = String.format("%s|%s", PHONE_REGEX, SOCIAL_REGEX);
-
-    public List<String> readUrlCsv() throws IOException {
-        Resource resource = new ClassPathResource("sample-websites.csv");
-        InputStream inputStream = resource.getInputStream();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            reader.readLine();
-            List<String> domainUrls = new ArrayList<>();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split(",");
-                domainUrls.add(fields[0].trim());
-            }
-            return domainUrls;
-        } catch (IOException e) {
-//            logger.error(e.getMessage());
-        }
-        throw new RuntimeException("Cannot read csv");
-    }
+    public static final String EMAIL_REGEX = "([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)";
+    public static final String SOCIAL_REGEX = String.format("%s|%s|%s|%s|%s", FACEBOOK_REGEX, INSTAGRAM_REGEX, TWITTER_REGEX, LINKEDIN_REGEX, EMAIL_REGEX);
 }

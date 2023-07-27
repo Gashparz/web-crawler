@@ -29,8 +29,6 @@ spec:
           env:
             - name: discovery.type
               value: single-node
-            - name: discovery.type
-              value: single-node
             - name: cluster.name
               value: elasticsearch
           volumeMounts:

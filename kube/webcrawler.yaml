@@ -1,13 +1,14 @@
 #--- deployment
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: web-crawler
 spec:
-  replicas: 4
+  replicas: 5
   selector:
     matchLabels:
       app: web-crawler
+  serviceName: web-crawler-headless
   template:
     metadata:
       labels:
@@ -15,7 +16,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: eduardpredescu/web-crawler:0.0.4
+          image: eduardpredescu/web-crawler:1.0
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
@@ -34,12 +35,25 @@ spec:
               value: "guest"
             - name: SPRING_RABBITMQ_PASSWORD
               value: "guest"
-#--- service
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+  volumeClaimTemplates:
+    - metadata:
+        name: shared-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-crawler
+  name: web-crawler-headless
 spec:
   selector:
     app: web-crawler
