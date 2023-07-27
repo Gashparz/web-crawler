@@ -24,6 +24,7 @@ public class WebCrawlerApplication {
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(WebCrawlerApplication.class, args);
+        elasticsearchService.createIndex();
         crawlerController.run();
     }
 

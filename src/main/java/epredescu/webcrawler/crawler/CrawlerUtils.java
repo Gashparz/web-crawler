@@ -1,16 +1,5 @@
 package epredescu.webcrawler.crawler;
 
-
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-
 public class CrawlerUtils {
     public static final String PHONE_REGEX = "(\\+\\d{1,2}\\s?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}";
     public static final String INSTAGRAM_REGEX = "((?:https?:\\/\\/)?(?:www\\.)?(instagram|instagr))\\.(com|am)\\/(?:[\\w\\-\\.]*\\/)*([\\w\\-\\.]*)";

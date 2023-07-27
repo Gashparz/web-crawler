@@ -4,7 +4,6 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrawlerFactory implements CrawlController.WebCrawlerFactory<Crawler> {
     ConcurrentHashMap<String, CopyOnWriteArrayList<WebsiteData>>  websiteDataMap;

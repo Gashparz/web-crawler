@@ -104,7 +104,7 @@ public class CrawlerController {
 
     public List<String> consumeDomains() {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost("rabbit");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
             String queueName = QUEUE_NAME + getReplicaNumber();
